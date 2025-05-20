@@ -141,10 +141,19 @@ def get_pred_label(result):
     return f"{predicted_gender}, {predicted_age:.0f} yrs\n{predicted_emotion}, {predicted_race}"
 
 def draw_label(image, label):
-    img_bgr = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    # Ensure input image is in RGB format
+    if image.shape[2] == 3:  # Check if image has 3 channels
+        img_rgb = image.copy()  # Assume RGB, make a copy to avoid modifying original
+    else:
+        print("Warning: Input image to draw_label has unexpected channels.")
+        return image
+
+    # Convert to BGR for OpenCV text drawing
+    img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
     for i, line in enumerate(label.split('\n')):
         cv2.putText(img_bgr, line, (10, 30 + i*30), cv2.FONT_HERSHEY_SIMPLEX,
                     0.8, (255, 255, 0), 2, cv2.LINE_AA)
+    # Convert back to RGB for matplotlib display
     return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
 # User choice: webcam or upload
@@ -332,6 +341,7 @@ while True:
                         label_original = "Processing Error"
                         label_enhanced = "Processing Error"
                     else:
+                        print(f"Storing face {i+1} in RGB format for final plot.")
                         original_path = os.path.join(temp_dir, f"original_face_{i}.jpg")
                         enhanced_path = os.path.join(temp_dir, f"enhanced_face_{i}.jpg")
                         Image.fromarray(original_face).save(original_path)
@@ -393,6 +403,7 @@ while True:
                 if original_face is None or enhanced_face is None:
                     continue
 
+                print(f"Storing manually captured face {i+1} in RGB format.")
                 original_path = os.path.join(temp_dir, f"original_face_{i}.jpg")
                 enhanced_path = os.path.join(temp_dir, f"enhanced_face_{i}.jpg")
                 Image.fromarray(original_face).save(original_path)
